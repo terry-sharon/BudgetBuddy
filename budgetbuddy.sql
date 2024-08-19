@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 14, 2024 at 08:53 PM
+-- Generation Time: Aug 19, 2024 at 05:40 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -24,25 +24,44 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `admin`
+--
+
+CREATE TABLE `admin` (
+  `id` int(11) NOT NULL,
+  `username` varchar(50) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `role` enum('admin','user') DEFAULT 'user',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `budgets`
 --
 
 CREATE TABLE `budgets` (
-  `budget_name` varchar(255) NOT NULL,
-  `Amount` int(100) NOT NULL,
-  `user_id` int(11) NOT NULL
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `total_amount` decimal(10,2) NOT NULL,
+  `amount_spent` decimal(10,2) DEFAULT 0.00,
+  `remaining_amount` decimal(10,2) GENERATED ALWAYS AS (`total_amount` - `amount_spent`) VIRTUAL,
+  `start_date` date DEFAULT NULL,
+  `end_date` date DEFAULT NULL,
+  `category` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `budgets`
 --
 
-INSERT INTO `budgets` (`budget_name`, `Amount`, `user_id`) VALUES
-('Kims day out', 50000, 4),
-('Kims day out', 50000, 4),
-('Kims day out', 50000, 4),
-('Kims day out', 50000, 4),
-('Kims day out', 50000, 4);
+INSERT INTO `budgets` (`id`, `user_id`, `name`, `total_amount`, `amount_spent`, `start_date`, `end_date`, `category`, `created_at`, `updated_at`) VALUES
+(1, 13, 'Electricity', 0.00, 0.00, NULL, NULL, NULL, '2024-08-19 15:17:38', '2024-08-19 15:17:38'),
+(2, 13, 'Transport', 600.00, 100.00, '2024-08-20', '2024-08-27', 'Transport', '2024-08-19 15:26:57', '2024-08-19 15:31:43');
 
 -- --------------------------------------------------------
 
@@ -53,8 +72,19 @@ INSERT INTO `budgets` (`budget_name`, `Amount`, `user_id`) VALUES
 CREATE TABLE `reminder` (
   `title` varchar(255) NOT NULL,
   `details` varchar(255) NOT NULL,
-  `reminder_date` date NOT NULL
+  `reminder_date` date NOT NULL,
+  `id` int(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `reminder`
+--
+
+INSERT INTO `reminder` (`title`, `details`, `reminder_date`, `id`) VALUES
+('bills', 'pay water', '2024-08-20', 1),
+('bills', 'pay water', '2024-08-20', 2),
+('bills', 'pay water', '2024-08-20', 3),
+('bills', 'pay water', '2024-08-20', 4);
 
 -- --------------------------------------------------------
 
@@ -63,12 +93,22 @@ CREATE TABLE `reminder` (
 --
 
 CREATE TABLE `transactions` (
-  `description` varchar(255) NOT NULL,
-  `amount` int(100) NOT NULL,
+  `id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
-  `date` date NOT NULL,
-  `id` int(11) NOT NULL
+  `description` varchar(255) NOT NULL,
+  `amount` decimal(10,2) NOT NULL,
+  `category` varchar(100) NOT NULL,
+  `date` datetime NOT NULL,
+  `budget_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `transactions`
+--
+
+INSERT INTO `transactions` (`id`, `user_id`, `description`, `amount`, `category`, `date`, `budget_id`) VALUES
+(1, 13, 'Transport', 50.00, 'Transport', '2024-08-21 00:00:00', 2),
+(2, 13, 'Transport', 50.00, 'Transport', '2024-08-21 00:00:00', 2);
 
 -- --------------------------------------------------------
 
@@ -89,13 +129,40 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `username`, `email`, `password`) VALUES
 (1, 'Terri', 'terry@gmail.com', '$2y$10$0yG/Df9aL5K5oqMqH9deuOgHXfyDTpmYZSgNQGlzPBgUrsaFrf1k.'),
-(2, 'Adijak', 'adijak@gmail.com', '$2y$10$ifLrl6BtOkp2iqB9mWmM1ueMTboQBmtwlrvsmBIPMAP.9RXrgn2pG'),
-(3, 'koko', 'koko@gmail.com', '$2y$10$twJzsXSCxbZLxg3PKqmUv.0rbkqgWC.d6y.sVKBaaoeYr3RaI3u7q'),
-(4, 'ck123456', 'ck@gmail.com', '$2y$10$vbIBdGdxSZpTi6B62LuwW.06Cvxo/q58fFBG2LvEXg6AtSrcHTUqW');
+(4, 'ck123456', 'ck@gmail.com', '$2y$10$vbIBdGdxSZpTi6B62LuwW.06Cvxo/q58fFBG2LvEXg6AtSrcHTUqW'),
+(12, 'bts', 'bts@gmail.com', '$2y$10$5lBjTvWNaVGKwpoUdeExSup2OUkqErQSyBkkJPzuNBseGG2nndvF2'),
+(13, 'black', 'black@gmail.com', '$2y$10$jRveFeCB5vSDGGfLNwHYyeY5flvgvEOzD5KITig5.pfMbBln5wkAy');
 
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `admin`
+--
+ALTER TABLE `admin`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `budgets`
+--
+ALTER TABLE `budgets`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
+-- Indexes for table `reminder`
+--
+ALTER TABLE `reminder`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `transactions`
+--
+ALTER TABLE `transactions`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `budget_id` (`budget_id`);
 
 --
 -- Indexes for table `users`
@@ -108,10 +175,51 @@ ALTER TABLE `users`
 --
 
 --
+-- AUTO_INCREMENT for table `admin`
+--
+ALTER TABLE `admin`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `budgets`
+--
+ALTER TABLE `budgets`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `reminder`
+--
+ALTER TABLE `reminder`
+  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `transactions`
+--
+ALTER TABLE `transactions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `budgets`
+--
+ALTER TABLE `budgets`
+  ADD CONSTRAINT `budgets_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+
+--
+-- Constraints for table `transactions`
+--
+ALTER TABLE `transactions`
+  ADD CONSTRAINT `transactions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+  ADD CONSTRAINT `transactions_ibfk_2` FOREIGN KEY (`budget_id`) REFERENCES `budgets` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
