@@ -53,6 +53,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <input type="date" class="form-control" id="reminder_date" name="reminder_date" required>
         </div>
         <button type="submit" class="btn btn-primary mt-3">Add Reminder</button>
+         <button type="submit" class="btn btn-primary mt-3">Manage  Reminder</button>
     </form>
 </div>
 </body>
