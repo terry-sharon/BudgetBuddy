@@ -4,7 +4,7 @@ session_start();
 
 // Check if the user is already logged in
 if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
-    header("location: dashtest.php");
+    header("Location: dashtest.php");
     exit;
 }
 
@@ -16,14 +16,14 @@ $username_err = $password_err = "";
 
 // Processing form data when form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Check if username is empty
+    // Validate username
     if (empty(trim($_POST["username"]))) {
-        $username_err = "Please enter username.";
+        $username_err = "Please enter your username.";
     } else {
         $username = trim($_POST["username"]);
     }
     
-    // Check if password is empty
+    // Validate password
     if (empty(trim($_POST["password"]))) {
         $password_err = "Please enter your password.";
     } else {
@@ -33,9 +33,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Validate credentials
     if (empty($username_err) && empty($password_err)) {
         // Prepare a select statement
-        $sql = "SELECT id, username, password FROM users WHERE username = ?";
+        $sql = "SELECT id, username, password, role FROM users WHERE username = ?";
         
         if ($stmt = mysqli_prepare($mysqli, $sql)) {
+            // Bind variables to the prepared statement as parameters
             mysqli_stmt_bind_param($stmt, "s", $param_username);
             
             // Set parameters
@@ -48,27 +49,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 
                 // Check if username exists, if yes then verify password
                 if (mysqli_stmt_num_rows($stmt) == 1) {
-                    mysqli_stmt_bind_result($stmt, $id, $username, $hashed_password);
+                    // Bind result variables
+                    mysqli_stmt_bind_result($stmt, $id, $username, $hashed_password, $role);
                     if (mysqli_stmt_fetch($stmt)) {
                         if (password_verify($password, $hashed_password)) {
-                            // Password is correct, so regenerate session ID to prevent fixation attacks
+                            // Password is correct, so start a new session
                             session_regenerate_id(true);
-                            
+
                             // Store data in session variables
                             $_SESSION["loggedin"] = true;
                             $_SESSION["id"] = $id;
-                            $_SESSION["username"] = $username;                            
+                            $_SESSION["username"] = $username;
+                            $_SESSION["role"] = $role; // Store the user's role in the session
                             
-                            // Redirect user to dashboardtest.php
-                            header("location: dashtest.php");
+                            // Redirect user based on their role
+                            if ($role === 'admin') {
+                                header("Location: admin_dashboard.php");
+                            } else {
+                                header("Location: dashtest.php");
+                            }
                             exit;
                         } else {
-                            // Display an error message if password is not valid
+                            // Password is not valid, display an error message
                             $password_err = "The password you entered was not valid.";
                         }
                     }
                 } else {
-                    // Display an error message if username doesn't exist
+                    // Username doesn't exist, display an error message
                     $username_err = "No account found with that username.";
                 }
             } else {
@@ -81,7 +88,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
     
     // Close connection
-    mysqli_close($mysqli); // Ensure this matches your config variable
+    mysqli_close($mysqli);
 }
 ?>
 
@@ -107,28 +114,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             background-color: white;
             padding: 25px;
             border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Soft shadow for depth */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
         h2 {
-            color: #00A86B; /* Dark green */
+            color: #00A86B;
             margin-bottom: 20px;
         }
         .btn-primary {
-            background-color: #007B3A; /* Dark green */
-            border-color: #006633; /* Slightly darker green for border */
+            background-color: #007B3A;
+            border-color: #006633;
         }
         .btn-primary:hover {
-            background-color: #005F2E; /* Darker green on hover */
+            background-color: #005F2E;
         }
         .form-control:focus {
             border-color: #007B3A;
             box-shadow: inset 0 1px 1px rgba(0,0,0,0.075), 0 0 8px rgba(0,86,179,0.6);
         }
         .invalid-feedback {
-            display: block; /* Ensure visibility */
+            display: block;
         }
         a {
-            color: #007B3A; /* Match the button color for consistency */
+            color: #007B3A;
         }
     </style>
 </head>

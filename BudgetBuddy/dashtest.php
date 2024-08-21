@@ -94,34 +94,6 @@ if (isset($_SESSION['id'])) {
     }
 }
 
-// Handle the reminder form submission
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['title']) && isset($_POST['details']) && isset($_POST['reminder_date'])) {
-    $user_id = $_SESSION['id'] ?? null; // Use 'id' from session if set
-    if ($user_id) {
-        $title = $_POST['title'];
-        $details = $_POST['details'];
-        $reminder_date = $_POST['reminder_date'];
-
-        $sql = "INSERT INTO reminder (user_id, title, details, reminder_date) VALUES (?, ?, ?, ?)";
-        if ($stmt = $mysqli->prepare($sql)) {
-            $stmt->bind_param("isss", $user_id, $title, $details, $reminder_date);
-            if ($stmt->execute()) {
-                $success_message = "Reminder added successfully!";
-            } else {
-                $error_message = "Error: " . $stmt->error;
-            }
-            $stmt->close();
-        }
-    } else {
-        $error_message = "User ID not found.";
-    }
-
-    // Clear form fields after submission
-    unset($_POST['title']);
-    unset($_POST['details']);
-    unset($_POST['reminder_date']);
-}
-
 $mysqli->close();
 ?>
 
@@ -273,14 +245,17 @@ $mysqli->close();
         <ul>
             <li><a href="#" class="toggle-form" data-target="budget-form-container">Budgets</a></li>
             <li><a href="#" class="toggle-form" data-target="transaction-form-container">Transactions</a></li>
-            <li><a href="#" class="toggle-form" data-target="reminder-form-container">Reminders</a></li>
+            <li><a href="#" class="toggle-form" data-target="reminder-form-container">Financial Advice</a></li>
+            <li><a href="m_budget.php">Manage Budgets</a></li>
+            <li><a href="view_transactions.php">View Transactions</a></li>
             <li><a href="profile.php">Profile</a></li>
             <li><a href="logout.php">Logout</a></li>
         </ul>
     </div>
 
-    <div class="container">
-        <h1>Welcome, <?php echo htmlspecialchars($_SESSION['username']); ?>!</h1>
+        <div class="container">
+    <h1>Welcome, <?php echo htmlspecialchars($_SESSION['username']); ?>!</h1>
+
 
         <?php if (!empty($success_message)): ?>
             <div class="alert alert-success"><?= $success_message; ?></div>
@@ -358,28 +333,6 @@ $mysqli->close();
                 <button type="submit" class="btn btn-primary">Add Transaction</button>
             </form>
         </div>
-
-        <!-- Reminder Form -->
-        <div id="reminder-form-container" class="form-container">
-            <h2>Add Reminder</h2>
-            <form method="post">
-                <div class="form-group">
-                    <label for="title">Title:</label>
-                    <input type="text" name="title" id="title" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label for="details">Details:</label>
-                    <input type="text" name="details" id="details" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label for="reminder_date">Reminder Date:</label>
-                    <input type="date" name="reminder_date" id="reminder_date" class="form-control" required>
-                </div>
-                <button type="submit" class="btn btn-primary">Add Reminder</button>
-            </form>
-        </div>
-    </div>
-
     <script>
         // JavaScript to toggle form visibility
         document.querySelectorAll('.toggle-form').forEach(button => {
