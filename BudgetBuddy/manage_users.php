@@ -33,7 +33,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_user'])) {
         if ($stmt = $mysqli->prepare($sql_update_user)) {
             if (!empty($password)) {
                 $password_hash = password_hash($password, PASSWORD_DEFAULT);
-                $stmt->bind_param("sssi", $username, $email, $role, $user_id);
                 $stmt->bind_param("ssss", $username, $email, $role, $password_hash, $user_id);
             } else {
                 $stmt->bind_param("ssi", $username, $email, $role, $user_id);
@@ -53,7 +52,38 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_user'])) {
 // Handle Delete User
 if (isset($_GET['delete'])) {
     $user_id = $_GET['delete'];
-    
+
+    // First, delete related transactions
+    $sql_delete_transactions = "DELETE t FROM transactions t 
+                                INNER JOIN budgets b ON t.budget_id = b.id
+                                WHERE b.user_id = ?";
+    if ($stmt = $mysqli->prepare($sql_delete_transactions)) {
+        $stmt->bind_param("i", $user_id);
+        if ($stmt->execute()) {
+            $success_message .= "Related transactions deleted successfully.<br>";
+        } else {
+            $error_message .= "Error deleting transactions: " . $mysqli->error . "<br>";
+        }
+        $stmt->close();
+    } else {
+        $error_message .= "Error preparing statement for transactions: " . $mysqli->error . "<br>";
+    }
+
+    // Next, delete related budgets
+    $sql_delete_budgets = "DELETE FROM budgets WHERE user_id = ?";
+    if ($stmt = $mysqli->prepare($sql_delete_budgets)) {
+        $stmt->bind_param("i", $user_id);
+        if ($stmt->execute()) {
+            $success_message .= "Related budgets deleted successfully.<br>";
+        } else {
+            $error_message .= "Error deleting budgets: " . $mysqli->error . "<br>";
+        }
+        $stmt->close();
+    } else {
+        $error_message .= "Error preparing statement for budgets: " . $mysqli->error . "<br>";
+    }
+
+    // Now, delete the user
     $sql_delete_user = "DELETE FROM users WHERE id = ?";
     if ($stmt = $mysqli->prepare($sql_delete_user)) {
         $stmt->bind_param("i", $user_id);
@@ -64,7 +94,7 @@ if (isset($_GET['delete'])) {
         }
         $stmt->close();
     } else {
-        $error_message .= "Error preparing statement: " . $mysqli->error . "<br>";
+        $error_message .= "Error preparing statement for user: " . $mysqli->error . "<br>";
     }
 }
 

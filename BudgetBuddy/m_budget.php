@@ -12,6 +12,7 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
 // Initialize messages
 $success_message = '';
 $error_message = '';
+$negative_remaining_amount_alerts = [];
 
 // Handle budget deletion
 if (isset($_GET['delete'])) {
@@ -41,6 +42,13 @@ if (isset($_SESSION['id'])) {
         $result = $stmt->get_result();
         $all_budgets = $result->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
+        
+        // Check for negative remaining amounts
+        foreach ($all_budgets as $budget) {
+            if ($budget['remaining_amount'] < 0) {
+                $negative_remaining_amount_alerts[] = htmlspecialchars($budget['name']);
+            }
+        }
     } else {
         $error_message = "Error preparing statement: " . $mysqli->error;
     }
@@ -100,6 +108,10 @@ $mysqli->close();
         .btn-back {
             margin-bottom: 20px;
         }
+        .alert-warning {
+            background-color: #f0ad4e;
+            color: #fff;
+        }
     </style>
 </head>
 <body>
@@ -113,6 +125,16 @@ $mysqli->close();
             <?php endif; ?>
             <?php if (!empty($error_message)) : ?>
                 <div class="alert alert-danger"><?php echo $error_message; ?></div>
+            <?php endif; ?>
+            <?php if (!empty($negative_remaining_amount_alerts)) : ?>
+                <div class="alert alert-warning">
+                    <strong>Warning:</strong> The following budgets have a negative remaining amount:
+                    <ul>
+                        <?php foreach ($negative_remaining_amount_alerts as $budget_name) : ?>
+                            <li><?php echo $budget_name; ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
             <?php endif; ?>
 
             <!-- Display Budgets -->
